@@ -6,7 +6,7 @@ from sqlalchemy import text
 from app.api.routes.auth import router as auth_router
 from app.db.database import Base, engine
 from app.models import User  
-
+from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,6 +20,14 @@ app = FastAPI(
     description="Authentication and AI-agent backend for TabPilot AI.",
     version="0.1.0",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex=r"chrome-extension://.*",
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 app.include_router(auth_router)

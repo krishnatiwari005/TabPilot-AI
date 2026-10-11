@@ -14,10 +14,9 @@ export default defineManifest({
     'storage',
   ],
 
-  host_permissions: [
-    'http://*/*',
-    'https://*/*',
-  ],
+host_permissions: [
+  'http://127.0.0.1:8000/*',
+],
 
   background: {
     service_worker: 'src/background.ts',
