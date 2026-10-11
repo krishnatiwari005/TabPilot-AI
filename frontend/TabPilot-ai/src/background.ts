@@ -3,30 +3,34 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('TabPilot AI installed!')
 })
 
-// Open the side panel when the extension icon is clicked.
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch(console.error)
 
-// Handle requests from the side panel.
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message.type !== 'ANALYZE_PAGE') {
-    return
-  }
+chrome.runtime.onMessage.addListener(
+  (message, _sender, sendResponse) => {
+    if (message.type !== 'ANALYZE_PAGE') {
+      return
+    }
 
-  chrome.tabs.query(
-    { active: true, lastFocusedWindow: true },
-    async (tabs) => {
-      const tab = tabs[0]
-
-      if (!tab?.id) {
-        sendResponse({
-          error: 'No active browser tab found.',
-        })
-        return
-      }
-
+    void (async () => {
       try {
+        // Prefer the tab that belongs to the extension's side-panel window.
+        const tabs = await chrome.tabs.query({
+          active: true,
+          lastFocusedWindow: true,
+        })
+
+        const tab = tabs.find(
+          (item) => item.id && /^https?:\/\//i.test(item.url ?? ''),
+        )
+
+        if (!tab?.id) {
+          throw new Error(
+            'No accessible website tab found. Open a regular website and try again.',
+          )
+        }
+
         const results = await chrome.scripting.executeScript({
           target: { tabId: tab.id },
           func: () => ({
@@ -39,10 +43,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         const page = results[0]?.result
 
         if (!page) {
-          sendResponse({
-            error: 'No page content could be extracted.',
-          })
-          return
+          throw new Error('No page content could be extracted.')
         }
 
         sendResponse({ data: page })
@@ -53,13 +54,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           error:
             error instanceof Error
               ? error.message
-              : 'Page extraction failed. Check the service worker console.',
+              : 'Page extraction failed.',
         })
       }
-    },
-  )
+    })()
 
-  // Keep the message channel open for the asynchronous response.
-  return true
-})
-
+    return true
+  },
+)

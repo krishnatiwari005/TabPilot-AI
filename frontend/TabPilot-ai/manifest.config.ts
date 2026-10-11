@@ -15,7 +15,8 @@ export default defineManifest({
   ],
 
 host_permissions: [
-  'http://127.0.0.1:8000/*',
+  'http://*/*',
+  'https://*/*',
 ],
 
   background: {

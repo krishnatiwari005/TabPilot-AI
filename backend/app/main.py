@@ -7,6 +7,7 @@ from app.api.routes.auth import router as auth_router
 from app.db.database import Base, engine
 from app.models import User  
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.routes.chat import router as chat_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,7 +32,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
-
+app.include_router(chat_router)
 
 @app.get("/")
 def root():
