@@ -4,6 +4,10 @@ dist/
 .npm/
 *.log
 
+# Browser extension packages and signing keys
+*.crx
+*.pem
+
 # Environment variables
 .env
 .env.*
